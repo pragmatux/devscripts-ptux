@@ -1,0 +1,15 @@
+Source: devscripts-ptux
+Section: devel
+Priority: extra
+Maintainer: Ryan Kuester <rkuester@insymbols.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+
+Package: devscripts-ptux
+Architecture: all
+Depends: dh-make, ${misc:Depends}
+Description: Helper scripts for Pragmatux development
+ This package contains helper scripts for development in Pragmatux-based
+ projects. The scripts are often enhancements to Debian's own
+ development scripts from the devscripts package, in which case they
+ bear a similar name, e.g., debchange becomes ptuxchange.

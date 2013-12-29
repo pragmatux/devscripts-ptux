@@ -1,0 +1,9 @@
+devscripts-ptux (0+T1388276554~gd114764) UNRELEASED; urgency=high
+
+  This changelog was automatically generated at build time from
+  the git repository containing the package's source. Please
+  refer to the git repository for a thorough history. The
+  version, author, and date in this entry are from the commit
+  at which this package was built.
+
+ -- Ryan Kuester <rkuester@insymbols.com>  Sat, 28 Dec 2013 18:20:40 -0600

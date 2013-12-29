@@ -1,0 +1,49 @@
+#!/bin/sh
+# Initialize a reprepro package repository in the current directory
+
+set -e
+
+write_distributions () {
+	mkdir -p conf
+	cat >conf/distributions <<-END
+		Codename: 1.0
+		Suite: unstable
+		AlsoAcceptFor: UNRELEASED, any
+		Components: main
+		Architectures: source armel amd64
+		Label: Pragmatux
+		Description: <insert description here>
+		Log: log
+	END
+}
+
+write_incoming () {
+	mkdir -p conf incoming tmp
+	cat >conf/incoming <<- END
+		Name: default
+		IncomingDir: $(pwd)/incoming
+		TempDir: $(pwd)/tmp
+		Default: unstable
+	END
+}
+
+write_update_script () {
+	name=ingest
+	mkdir -p scripts
+	cat >scripts/$name <<- END
+		#!/bin/sh
+		group="$(id -ng)"
+		export REPREPRO_BASE_DIR=$(pwd)
+		umask 002
+		sg \${group} "reprepro processincoming default"
+	END
+	chmod 775 scripts/$name
+}
+
+[ -d conf ] && echo Error: ./conf already exists 1>&2 && exit 1
+umask 002
+write_distributions
+write_incoming
+write_update_script
+find . -type d | xargs chmod g+s
+reprepro createsymlinks

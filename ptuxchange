@@ -1,0 +1,89 @@
+#!/bin/sh
+# Create a Debian changelog based on git history.
+set -e
+
+usage="\
+usage: ${0##*/} [options]
+
+    --placeholder  write the placeholder which notes changelog is generated
+    --release      write the changelog using the contents of the commit at HEAD
+    --version      print the version number that would be assigned"
+
+get_package_name () {
+	awk '/Source:/ {print $2}' debian/control
+}
+
+version () {
+	if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]
+	then
+		# print distance from nearest tag or beginning
+		tag=$(git describe --abbrev=0 --tags --match "debian/*" \
+			2>/dev/null || :)
+		cnt=$(git rev-list --count \
+			HEAD $([ "$tag" ] && echo -n "^$tag"))
+
+		if [ "$tag" ]
+		then
+			echo -n ${tag#debian/}$([ "$cnt" != 0 ] && \
+				echo -n "+$cnt")
+		else
+			echo -n $cnt
+		fi
+	else
+		echo -n todo-not-master
+	fi
+}
+
+create_placeholder () {
+	cat >debian/changelog <<- END
+		$(get_package_name) (0) UNRELEASED; urgency=low
+
+		  NOTE this changelog is generated from git history when the
+		  source package is built. Any change made to this file will be
+		  overwritten. Do not commit the generated file to git.
+
+		  The package name above is significant and must be maintained,
+		  as several debian tools (e.g., from the devscripts package)
+		  read the changelog.
+
+		 -- Generated <an@example.com>  Thu, 01 Jan 1970 00:00:00 +0000
+	END
+}
+
+release_changelog () {
+	if ptuxversion --check-development; then
+		distribution="UNRELEASED"
+	else
+		distribution="any"
+	fi
+
+	cat >debian/changelog <<- END
+	$(get_package_name) ($(ptuxversion)) $distribution; urgency=high
+
+	  This changelog was automatically generated at build time from
+	  the git repository containing the package's source. Please
+	  refer to the git repository for a thorough history. The
+	  version, author, and date in this entry are from the commit
+	  at which this package was built.
+
+	 -- $(git show -s --format='%an <%ae>  %aD')
+	END
+}
+
+case "$#,$1" in
+1,--placeholder)
+	create_placeholder "$@"
+	;;
+1,--release)
+	release_changelog "$@"
+	;;
+1,--version)
+	version "$@"
+	;;
+0,*)
+	release_changelog "$@"
+	;;
+*)
+	echo "$usage"
+	;;
+esac

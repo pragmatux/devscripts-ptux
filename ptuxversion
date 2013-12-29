@@ -1,0 +1,112 @@
+#!/bin/sh
+set -e
+
+mainline=master
+
+tag_and_distance ()
+{
+	commit="$1"
+	base="$2"
+
+	# Find the nearest tag within the range $base..$commit.
+	tag=$(git describe --abbrev=0 --tags --match debian/\* $commit 2>/dev/null || :)
+	if [ "$tag" ] \
+	&& [ "$base" ] \
+	&& [ "$(git merge-base $tag $base)" = "$(git rev-parse $tag)" ]; then
+		# The tag comes before $base, so none exist in the range.
+		tag=""
+	fi
+
+	if [ "$tag" ]; then
+		# Output "tag+distance", where distance is the distance past the
+		# tag, unless tag+distance is equal to the distance above the
+		# base, in which case output one, summed result.
+
+		suffix=$(echo ${tag#debian/} | sed -e 's/.*\([0-9\.]\+\)$/\1/')
+		if [ "$suffix" = "$(git rev-list --count ${base:+$base..}$tag)" ]; then
+			echo -n $(git rev-list --count ${base:+$base..}$commit)
+			prefix?
+		else
+			dist=$(git rev-list --count $tag..$commit)
+			echo -n ${tag#debian/}$([ $dist -gt 0 ] && echo -n +$dist)
+		fi
+	else
+		dist=$(git rev-list --count ${base:+$base..}$commit)
+		echo -n $dist
+	fi
+}
+
+development_suffix ()
+{
+	short="$(git rev-parse --short HEAD)"
+	dirty="$(git diff-index --quiet HEAD || echo -n -dirty)"
+	echo -n +T$(date +%s)\~g$short$dirty
+}
+
+has_upstream ()
+{
+	branch=$1
+	git rev-parse --verify $branch@{upstream} >/dev/null 2>&1
+}
+
+is_development ()
+{
+	# This is a development version if we're ahead of upstream or if we
+	# don't have an upstream
+
+	if ! has_upstream HEAD \
+	|| [ "$(git merge-base HEAD HEAD@{upstream})" \
+		!= "$(git rev-parse HEAD)" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+print_version ()
+{
+	# Print mainline's version
+	if has_upstream $mainline; then
+		echo -n $(tag_and_distance $mainline@{upstream})
+	else
+		echo -n 0
+	fi
+
+	# Print the branch and branch's version
+	branch="$(git symbolic-ref --short HEAD)"
+	if [ "$branch" != "$mainline" ]; then
+		echo -n "$branch"
+		
+		if has_upstream $branch; then
+			if  has_upstream $mainline; then
+				echo -n $(tag_and_distance $branch@{upstream} \
+					$mainline@{upstream})
+			else
+				echo -n $(tag_and_distance $branch@{upstream})
+			fi
+		else
+			echo -n 0
+		fi
+	fi
+
+	# Print the development header if we're ahead of upstream
+	if is_development; then
+		echo -n $(development_suffix)
+	fi
+
+	echo
+}
+
+case "$#,$1" in
+	0,*)
+		print_version
+		;;
+
+	1,--check-development)
+		is_development
+		;;
+	*)
+		echo Error 1>&2
+		exit 1
+		;;
+esac
