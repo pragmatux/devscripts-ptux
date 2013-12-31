@@ -7,7 +7,11 @@ case "$#,$1" in
 	echo $usage 1>&2
 	;;
 1,*)
-	dh_make --packagename ${1}_0 --yes --native --defaultless \
+	name=$1
+	test -d $name && echo Error: $name already exists 2>&1 && exit 1
+	mkdir -p $name/src
+	cd $name/src
+	dh_make --packagename ${name}_0 --yes --native --defaultless \
 		--templates /usr/share/devscripts-ptux/ptuxmake/templates-native-gpl3 
 	mkdir debian/source
 	echo "3.0 (native)" >debian/source/format
