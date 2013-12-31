@@ -20,6 +20,11 @@ case "$#,$1" in
 		>/dev/null
 	mkdir debian/source
 	echo "3.0 (native)" >debian/source/format
+
+	git init >/dev/null
+	git add .
+	git commit -m 'Initial package template' >/dev/null
+	git update-index --assume-unchanged debian/changelog
 	;;
 *)
 	echo $usage 1>&2
