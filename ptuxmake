@@ -11,8 +11,13 @@ case "$#,$1" in
 	test -d $name && echo Error: $name already exists 2>&1 && exit 1
 	mkdir -p $name/src
 	cd $name/src
-	dh_make --packagename ${name}_0 --yes --native --defaultless \
-		--templates /usr/share/devscripts-ptux/ptuxmake/templates-native-gpl3 
+	dh_make --packagename ${name}_0 \
+		--yes \
+		--native \
+		--defaultless \
+		--templates \
+		   /usr/share/devscripts-ptux/ptuxmake/templates-native-gpl3 \
+		>/dev/null
 	mkdir debian/source
 	echo "3.0 (native)" >debian/source/format
 	;;
