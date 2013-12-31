@@ -21,8 +21,8 @@ write_incoming () {
 	mkdir -p conf incoming tmp
 	cat >conf/incoming <<- END
 		Name: default
-		IncomingDir: $(pwd)/incoming
-		TempDir: $(pwd)/tmp
+		IncomingDir: incoming
+		TempDir: tmp
 		Default: unstable
 	END
 }
@@ -33,7 +33,7 @@ write_update_script () {
 	cat >scripts/$name <<- END
 		#!/bin/sh
 		group="$(id -ng)"
-		export REPREPRO_BASE_DIR=$(pwd)
+		export REPREPRO_BASE_DIR=\$(cd "\$(dirname "\$0")" && pwd)/..
 		umask 002
 		sg \${group} "reprepro processincoming default"
 	END
