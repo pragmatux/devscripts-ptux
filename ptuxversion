@@ -39,7 +39,7 @@ tag_and_distance ()
 development_suffix ()
 {
 	short="$(git rev-parse --short HEAD)"
-	dirty="$(git diff-index --quiet HEAD || echo -n -dirty)"
+	dirty="$(git diff-index --quiet HEAD || echo -n ~dirty)"
 	echo -n +T$(date +%s)\~g$short$dirty
 }
 
