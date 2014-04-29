@@ -10,7 +10,7 @@ write_distributions () {
 		Suite: unstable
 		AlsoAcceptFor: UNRELEASED, any
 		Components: main
-		Architectures: source armel amd64
+		Architectures: source armhf armel amd64
 		Label: Pragmatux
 		Description: <insert description here>
 		Log: log
