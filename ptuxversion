@@ -70,23 +70,6 @@ print_version ()
 		echo -n 0
 	fi
 
-	# Print the branch and branch's version
-	branch="$(git symbolic-ref --short HEAD)"
-	if [ "$branch" != HEAD ]; then
-		echo -n "$branch"
-		
-		if has_upstream $branch; then
-			if  has_upstream HEAD; then
-				echo -n $(tag_and_distance $branch@{upstream} \
-					HEAD@{upstream})
-			else
-				echo -n $(tag_and_distance $branch@{upstream})
-			fi
-		else
-			echo -n 0
-		fi
-	fi
-
 	# Print the development header if we're ahead of upstream
 	if is_development; then
 		echo -n $(development_suffix)
