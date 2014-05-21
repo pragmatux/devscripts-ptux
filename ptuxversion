@@ -1,8 +1,6 @@
 #!/bin/sh
 set -e
 
-mainline=master
-
 tag_and_distance ()
 {
 	commit="$1"
@@ -65,22 +63,22 @@ is_development ()
 
 print_version ()
 {
-	# Print mainline's version
-	if has_upstream $mainline; then
-		echo -n $(tag_and_distance $mainline@{upstream})
+	# Print upstream's version
+	if has_upstream HEAD; then
+		echo -n $(tag_and_distance HEAD@{upstream})
 	else
 		echo -n 0
 	fi
 
 	# Print the branch and branch's version
 	branch="$(git symbolic-ref --short HEAD)"
-	if [ "$branch" != "$mainline" ]; then
+	if [ "$branch" != HEAD ]; then
 		echo -n "$branch"
 		
 		if has_upstream $branch; then
-			if  has_upstream $mainline; then
+			if  has_upstream HEAD; then
 				echo -n $(tag_and_distance $branch@{upstream} \
-					$mainline@{upstream})
+					HEAD@{upstream})
 			else
 				echo -n $(tag_and_distance $branch@{upstream})
 			fi
