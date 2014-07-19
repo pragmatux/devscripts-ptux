@@ -13,3 +13,5 @@ Description: Helper scripts for Pragmatux development
  projects. The scripts are often enhancements to Debian's own
  development scripts from the devscripts package, in which case they
  bear a similar name, e.g., debchange becomes ptuxchange.
+ .
+ ptuxmake is aliased to dh-make-ptux via symlink.
