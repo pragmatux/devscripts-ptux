@@ -1,11 +1,16 @@
 #!/bin/sh
-# Initialize a reprepro package repository in the current directory
+# Initialize a reprepro package repository
 
 set -e
 
+# Create a new directory named $1 or use the current directory.
+dir=${1:-.}
+mkdir -p $dir
+test -z "$(ls $dir)"
+
 write_distributions () {
-	mkdir -p conf
-	cat >conf/distributions <<-END
+	mkdir -p $dir/conf
+	cat >$dir/conf/distributions <<-END
 		Codename: 1.0
 		Suite: unstable
 		AlsoAcceptFor: UNRELEASED, any
@@ -18,8 +23,8 @@ write_distributions () {
 }
 
 write_incoming () {
-	mkdir -p conf incoming tmp
-	cat >conf/incoming <<- END
+	mkdir -p $dir/conf $dir/incoming $dir/tmp
+	cat >$dir/conf/incoming <<- END
 		Name: default
 		IncomingDir: incoming
 		TempDir: tmp
@@ -29,21 +34,20 @@ write_incoming () {
 
 write_update_script () {
 	name=ingest
-	mkdir -p scripts
-	cat >scripts/$name <<- END
+	mkdir -p $dir/scripts
+	cat >$dir/scripts/$name <<- END
 		#!/bin/sh
 		group="$(id -ng)"
 		export REPREPRO_BASE_DIR=\$(cd "\$(dirname "\$0")" && pwd)/..
 		umask 002
 		sg \${group} "reprepro processincoming default"
 	END
-	chmod 775 scripts/$name
+	chmod 775 $dir/scripts/$name
 }
 
-[ -d conf ] && echo Error: ./conf already exists 1>&2 && exit 1
 umask 002
 write_distributions
 write_incoming
 write_update_script
-find . -type d | xargs chmod g+s
-reprepro createsymlinks
+find $dir -type d | xargs chmod g+s
+reprepro --basedir $dir createsymlinks
