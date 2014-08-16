@@ -42,10 +42,10 @@ write_update_script () {
 		umask 002
 		sg \${group} "reprepro processincoming default"
 	END
-	chmod 775 $dir/scripts/$name
+	chmod 770 $dir/scripts/$name
 }
 
-umask 002
+umask 007
 write_distributions
 write_incoming
 write_update_script
