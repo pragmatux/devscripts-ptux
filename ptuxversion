@@ -34,11 +34,16 @@ tag_and_distance ()
 	fi
 }
 
-development_suffix ()
+git_suffix ()
 {
 	short="$(git rev-parse --short HEAD)"
 	dirty="$(git diff-index --quiet HEAD || echo -n ~dirty)"
-	echo -n +T$(date +%s)\~g$short$dirty
+	echo -n \~g$short$dirty
+}
+
+development_suffix ()
+{
+	echo -n +T$(date +%s)
 }
 
 has_upstream ()
@@ -75,7 +80,8 @@ print_version ()
 		echo -n $(development_suffix)
 	fi
 
-	echo
+	# Print the git suffix, always
+	echo $(git_suffix)
 }
 
 case "$#,$1" in
