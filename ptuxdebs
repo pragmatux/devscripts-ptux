@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Where debi installs the current version of the generated package, ptuxdebs
+# prints out the path to the current version of the generated package(s).
+
+version=$(dpkg-parsechangelog --count 1 | awk '/Version: / {print $2}')
+pattern="../*_${version}_*.deb"
+
+exec ls $pattern
