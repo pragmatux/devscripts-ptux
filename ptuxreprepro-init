@@ -11,7 +11,7 @@ test -z "$(ls $dir)"
 write_distributions () {
 	mkdir -p $dir/conf
 	cat >$dir/conf/distributions <<-END
-		Codename: 1.0
+		Codename: master
 		Suite: unstable
 		AlsoAcceptFor: UNRELEASED, any
 		Components: main
