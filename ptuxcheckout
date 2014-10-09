@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+is_url ()
+{
+    echo $1 | grep : >/dev/null
+}
+
+if [ $# != 1 ] || is_url $1; then
+    echo "Only argument PACKAGE is supported; use debcheckout(1) directly." >&2
+    exit 1
+fi
+
+mkdir -p $1
+exec debcheckout $1 $1/src
