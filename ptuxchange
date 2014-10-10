@@ -51,6 +51,10 @@ create_placeholder () {
 }
 
 release_changelog () {
+	if [ -d .git ]; then
+		git update-index --assume-unchanged debian/changelog
+	fi
+
 	if ptuxversion --check-development; then
 		distribution="UNRELEASED"
 	else
@@ -68,10 +72,6 @@ release_changelog () {
 
 	 -- $(git show -s --format='%an <%ae>  %aD')
 	END
-
-	if [ -d .git ]; then
-		git update-index --assume-unchanged debian/changelog
-	fi
 }
 
 case "$#,$1" in
