@@ -58,7 +58,7 @@ release_changelog () {
 	if ptuxversion --check-development; then
 		distribution="UNRELEASED"
 	else
-		distribution="any"
+		distribution="unstable"
 	fi
 
 	cat >debian/changelog <<- END
