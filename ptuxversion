@@ -20,10 +20,8 @@ tag_and_distance ()
 		# tag, unless tag+distance is equal to the distance above the
 		# base, in which case output one, summed result.
 
-		suffix=$(echo ${tag#debian/} | sed -e 's/.*\([0-9\.]\+\)$/\1/')
-		if [ "$suffix" = "$(git rev-list --count ${base:+$base..}$tag)" ]; then
+		if [ "${tag#debian/}" = "$(git rev-list --count ${base:+$base..}$tag)" ]; then
 			echo -n $(git rev-list --count ${base:+$base..}$commit)
-			prefix?
 		else
 			dist=$(git rev-list --count $tag..$commit)
 			echo -n ${tag#debian/}$([ $dist -gt 0 ] && echo -n +$dist)
