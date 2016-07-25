@@ -46,8 +46,7 @@ development_suffix ()
 
 has_upstream ()
 {
-	branch=$1
-	git rev-parse --verify $branch@{upstream} >/dev/null 2>&1
+	git rev-parse --verify $upstream >/dev/null 2>&1
 }
 
 is_development ()
@@ -56,7 +55,7 @@ is_development ()
 	# don't have an upstream
 
 	if ! has_upstream HEAD \
-	|| [ "$(git merge-base HEAD HEAD@{upstream})" \
+	|| [ "$(git merge-base HEAD $upstream)" \
 		!= "$(git rev-parse HEAD)" ]; then
 		return 0
 	else
@@ -67,8 +66,8 @@ is_development ()
 print_version ()
 {
 	# Print upstream's version
-	if has_upstream HEAD; then
-		echo -n $(tag_and_distance HEAD@{upstream})
+	if has_upstream; then
+		echo -n $(tag_and_distance $upstream)
 	else
 		echo -n 0
 	fi
@@ -78,9 +77,18 @@ print_version ()
 		echo -n $(development_suffix)
 	fi
 
+	# Print the branch name, if it's not master
+	branch="$(git rev-parse --abbrev-ref HEAD)"
+	if [ "$branch" != "$master" ]; then
+		echo -n -$branch
+	fi
+
 	# Print the git suffix, always
 	echo $(git_suffix)
 }
+
+master="master"
+upstream="$master@{upstream}"
 
 case "$#,$1" in
 	0,*)
