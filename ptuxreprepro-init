@@ -14,6 +14,7 @@ write_distributions () {
 		Codename: master
 		Suite: unstable
 		Components: main
+		UDebComponents: main
 		Architectures: source armhf armel amd64
 		Label: Pragmatux
 		Description: <insert description here>
