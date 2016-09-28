@@ -4,7 +4,6 @@
 # a previous .upload file to determine the repository profile to use if a name
 # is not given on the command line.
 #
-set -x
 set -e
 
 if expr "$*" : '^[[:alnum:]]' || expr "$*" : '.* [[:alpha:]]' >/dev/null
