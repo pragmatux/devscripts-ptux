@@ -1,16 +1,19 @@
 #!/bin/sh
 
-usage="usage: ${0##*/} PACKAGE_NAME"
+usage="\
+usage: ${0##*/} PACKAGE_NAME
+usage: ${0##*/} PACKAGE_NAME <dir>"
 
-case "$#,$1" in
-1,-*)
-	echo $usage 1>&2
-	;;
-1,*)
+name=$1
+dir=$2
+
+debianize()
+{
 	name=$1
-	test -d $name && echo Error: $name already exists 2>&1 && exit 1
-	mkdir -p $name/src
-	cd $name/src
+	dir=$2
+	olddir=$PWD
+
+	cd $dir
 	dh_make --packagename ${name}_0 \
 		--yes \
 		--native \
@@ -18,15 +21,40 @@ case "$#,$1" in
 		--templates \
 		   /usr/share/devscripts-ptux/ptuxmake/templates-native-gpl3 \
 		>/dev/null
-	mkdir debian/source
+	mkdir -p debian/source
 	echo "3.0 (native)" >debian/source/format
+	cd $olddir
+}
 
+git_init()
+{
+	dir=$1
+	olddir=$PWD
+
+	cd $dir
 	git init >/dev/null
 	git add .
 	git commit -m 'Initial package template' >/dev/null
 	git update-index --assume-unchanged debian/changelog
+	cd $olddir
+}
+
+case "$#,$1" in
+1,-*)
+	echo "$usage"
+	;;
+1,*)
+	test -d $name && { echo error: directory $name already exists >&2; exit 1; }
+	srcdir=$name/src
+	mkdir -p $srcdir
+	debianize $name $srcdir
+	git_init $srcdir
+	;;
+2,*)
+	test -d $dir || { echo "error: $dir is not a directory" >&2; exit 1; }
+	debianize $name $dir
 	;;
 *)
-	echo $usage 1>&2
+	echo "$usage" >&2
 	;;
 esac
