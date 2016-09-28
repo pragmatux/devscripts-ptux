@@ -1,4 +1,15 @@
 #!/bin/sh
+set -e
+
+# Record which old development files to delete if this build succeeds. Keep the
+# last .upload file because ptuxrelease uses it to repeat the last upload.
+old_files="$(find .. -name '*_*+T?*~g???????*' -not -name '*.upload')"
+old_uploads="$(find .. -name '*.upload' | sort | head -n-1)"
 
 ptuxchange
 git-buildpackage "$@"
+
+if [ ${PTUXBUILD_CLEAN+set} ]
+then
+	rm -f $old_files $old_uploads
+fi
