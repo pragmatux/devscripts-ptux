@@ -6,7 +6,8 @@
 #
 set -e
 
-if expr "$*" : '^[[:alnum:]]' || expr "$*" : '.* [[:alpha:]]' >/dev/null
+if expr "$*" : '^[[:alnum:]]' >/dev/null \
+|| expr "$*" : '.* [[:alpha:]]' >/dev/null
 then
 	# There's at least one argument not prefixed by a dash. Assume it's a
 	# profile name for dput and don't look for the last used profile.
