@@ -80,7 +80,7 @@ print_version ()
 	# Print the branch name, if it's not master
 	branch="$(git rev-parse --abbrev-ref HEAD)"
 	if [ "$branch" != "$master" ]; then
-		echo -n -$branch
+		echo -n +$branch
 	fi
 
 	# Print the git suffix, always
