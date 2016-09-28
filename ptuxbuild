@@ -6,6 +6,7 @@ set -e
 old_files="$(find .. -name '*_*+T?*~g???????*' -not -name '*.upload')"
 old_uploads="$(find .. -name '*.upload' | sort | head -n-1)"
 
+dh_clean
 ptuxchange
 git-buildpackage "$@"
 
