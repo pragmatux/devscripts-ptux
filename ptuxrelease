@@ -9,16 +9,14 @@ set -e
 test -r /etc/devscripts.conf && . /etc/devscripts.conf
 test -r $HOME/.devscripts && . $HOME/.devscripts
 
-if expr "$*" : '^[[:alnum:]]' >/dev/null \
-|| expr "$*" : '.* [[:alpha:]]' >/dev/null
+default_profile=""
+if ! expr "$*" : '^[[:alnum:]]' >/dev/null \
+&& ! expr "$*" : '.* [[:alpha:]]' >/dev/null \
+&& [ "$(ls ../*.*.upload)" ]
 then
-	# There's at least one argument not prefixed by a dash. Assume it's a
-	# profile name for dput and don't look for the last used profile.
-	default_profile=""
-else
-	# There are no arguments that look like a profile name. Try to use
+	# There are no arguments that look like a profile name. Use
 	# the profile used in the last upload.
-	default_profile=$(expr "$(ls ../*.upload | sort | tail -n1)" : '.*\.\(.*\).upload$')
+	default_profile=$(expr "$(ls -v ../*.upload | sort | tail -n1)" : '.*\.\(.*\).upload$')
 fi
 
 # debrelease defaults to using dupload, but we want the default to be dput.
