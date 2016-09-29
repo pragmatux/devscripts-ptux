@@ -6,6 +6,9 @@
 #
 set -e
 
+test -r /etc/devscripts.conf && . /etc/devscripts.conf
+test -r $HOME/.devscripts && . $HOME/.devscripts
+
 if expr "$*" : '^[[:alnum:]]' >/dev/null \
 || expr "$*" : '.* [[:alpha:]]' >/dev/null
 then
@@ -19,6 +22,10 @@ else
 fi
 
 # debrelease defaults to using dupload, but we want the default to be dput.
-: ${DEBRELEASE_UPLOADER:=dput}; export DEBRELEASE_UPLOADER
+uploader=""
+if [ -z "${DEBRELEASE_UPLOADER:+set}" ]
+then
+	uploader="--dput"
+fi
 
-exec debrelease "$@" $default_profile
+exec debrelease $uploader "$@" $default_profile
