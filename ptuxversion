@@ -30,6 +30,10 @@ tag_and_distance ()
 		# tag, unless tag+distance is equal to the distance above the
 		# base, in which case output one, summed result.
 
+		# Select the debian/* tag name. There might be other tags
+		# pointing at this commit, e.g., from upstream.
+		tag=$(git tag --list --points-at $tag debian/\*)
+
 		if [ "${tag#debian/}" = "$(git rev-list --count ${base:+$base..}$tag)" ]; then
 			echo -n $(git rev-list --count ${base:+$base..}$commit)
 		else
