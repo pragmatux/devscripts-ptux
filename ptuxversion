@@ -102,7 +102,7 @@ print_version ()
 {
 	# Print upstream's version
 	if auth_exists; then
-		if auth_has_upstream; then
+		if auth_has_upstream && ! [ "$force_authoritative" ]; then
 			echo -n $(tag_and_distance $auth_upstream)
 		else
 			echo -n $(tag_and_distance $authority)
@@ -112,7 +112,7 @@ print_version ()
 	fi
 
 	# Print the development header if we're ahead of upstream
-	if is_development; then
+	if is_development && ! [ "$force_authoritative" ]; then
 		echo -n $(development_suffix)
 	fi
 
@@ -131,6 +131,12 @@ case "$#,$1" in
 	1,--check-development)
 		is_development
 		;;
+
+	1,--force-authoritative)
+		force_authoritative=1
+		print_version
+		;;
+
 	*)
 		echo Error 1>&2
 		exit 1
