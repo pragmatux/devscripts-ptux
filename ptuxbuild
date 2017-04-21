@@ -8,7 +8,7 @@ old_uploads="$(find .. -name '*.upload' | sort | head -n-1)"
 
 dh_clean
 ptuxchange
-git-buildpackage "$@"
+gbp buildpackage "$@"
 
 if [ ${PTUXBUILD_CLEAN+set} ]
 then
