@@ -1,0 +1,80 @@
+# This CI configuration for this package is more complicated than most
+# configurations ought to be, because this package contains the very build and
+# deployment tools used by the CI scripts. Ordinarily, these tools would simply
+# be preinstalled in the CI image and found on the PATH.
+
+image: registry.gitlab.com/pragmatux/build-essential-image:stretch
+
+before_script:
+- export DEBIAN_FRONTEND=noninteractive
+- apt-get -yq -o Acquire::Pdiffs=false update
+
+stages:
+- test
+- package
+- deploy
+
+py unittest:
+  stage: test
+  script:
+  - apt-get -yq install --no-install-recommends
+      python-docopt
+      python-debian
+      aptly
+  - cd ptuxrepo.d
+  - python -m unittest discover
+
+ptuxbuild:
+  stage: package
+  script:
+  - apt-get -yq install --no-install-recommends
+      git-buildpackage
+      python-debian
+  - apt-get -yq build-dep .
+  - PATH=.:$PATH ptuxbuild
+  artifacts:
+    paths:
+    - debian/build/*
+    - debian/changelog
+
+docker image:
+  stage: deploy
+  image: docker:latest
+  services:
+  - docker:dind
+  before_script:
+  - '# skip global before_script'
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/ptuxrepo:$CI_COMMIT_REF_NAME
+  script:
+  - ln debian/build/ptuxrepo*.deb docker/
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker build -t $IMAGE_TAG docker/
+  - docker push $IMAGE_TAG
+
+ptuxrepo add:
+  stage: deploy
+  environment:
+    name: $CI_COMMIT_REF_NAME
+  script:
+  - apt-get -yq install --no-install-recommends
+      python-docopt
+      python-debian
+      openssh-client
+  #
+  # The distribution named with the branch name is targeted unless overridden
+  # with a DEPLOY_DIST_$branch variable.
+  #
+  - DIST_OVERRIDE="DEPLOY_DIST_${CI_COMMIT_REF_NAME}"
+  - DIST=${!DIST_OVERRIDE:-${CI_COMMIT_REF_NAME}}
+
+  #
+  # Set the DEPLOY_PRIVATE_KEY variable to a SSH private key for use by
+  # ptuxrepo when contacting the repository.
+  #
+  - export PTUXREPO_PRIVATE_KEY=${DEPLOY_PRIVATE_KEY?'Must be set'}
+
+  #
+  # Set the DEPLOY_REPO variable to the target ptuxrepo repository.
+  #
+  - PATH=.:$PATH ptuxrepo add --dist-force ${DIST} ${DEPLOY_REPO?'Must be set.'}
