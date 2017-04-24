@@ -1,6 +1,16 @@
 #!/bin/sh
 set -e
 
+# Commits along the authoritative branch are considered “release commits”
+# (i.e., they contribute to the version number), with the exception of commits
+# that are not in the branch’s upstream, should it have one. Commits not in the
+# authoritative branch, or those which are not in the authoritative branch’s
+# upstream should it have one, are considered “development commits,” and
+# receive a version number based on the time.
+#
+# The authoritative branch defaults to “master.” If there is no authoritative
+# branch, the authoritative part of the version number is “0.”
+
 tag_and_distance ()
 {
 	commit="$1"
@@ -32,10 +42,15 @@ tag_and_distance ()
 	fi
 }
 
+is_dirty ()
+{
+	! git ls-files --modified --others --exclude-standard | sed q1 >/dev/null
+}
+
 git_suffix ()
 {
 	short="$(git rev-parse --short HEAD)"
-	dirty="$(git diff-index --quiet HEAD || echo -n ~dirty)"
+	is_dirty && dirty="~dirty" || dirty=""
 	echo -n \~g$short$dirty
 }
 
@@ -44,30 +59,48 @@ development_suffix ()
 	echo -n +T$(date +%s)
 }
 
-has_upstream ()
+auth_exists ()
 {
-	git rev-parse --verify $upstream >/dev/null 2>&1
+	git rev-parse --verify $authority >/dev/null 2>&1
+}
+
+auth_has_upstream ()
+{
+	git rev-parse --verify $auth_upstream >/dev/null 2>&1
+}
+
+ref_is_contained_in ()
+{
+	ref=$1
+	in=$2
+
+	test "$(git merge-base $ref $in)" = "$(git rev-parse $ref)"
 }
 
 is_development ()
 {
-	# This is a development version if we're ahead of upstream or if we
-	# don't have an upstream
-
-	if ! has_upstream HEAD \
-	|| [ "$(git merge-base HEAD $upstream)" \
-		!= "$(git rev-parse HEAD)" ]; then
-		return 0
+	if is_dirty; then
+		true
+	elif auth_exists; then
+		if auth_has_upstream; then
+			! ref_is_contained_in HEAD $auth_upstream
+		else
+			! ref_is_contained_in HEAD $authority
+		fi
 	else
-		return 1
+		true
 	fi
 }
 
 print_version ()
 {
 	# Print upstream's version
-	if has_upstream; then
-		echo -n $(tag_and_distance $upstream)
+	if auth_exists; then
+		if auth_has_upstream; then
+			echo -n $(tag_and_distance $auth_upstream)
+		else
+			echo -n $(tag_and_distance $authority)
+		fi
 	else
 		echo -n 0
 	fi
@@ -81,8 +114,8 @@ print_version ()
 	echo $(git_suffix)
 }
 
-master="master"
-upstream="$master@{upstream}"
+authority="master"
+auth_upstream="$authority@{upstream}"
 
 case "$#,$1" in
 	0,*)
