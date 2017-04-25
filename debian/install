@@ -1,3 +1,0 @@
-ptux* /usr/bin
-dh-make-ptux/dh-make-ptux /usr/bin
-dh-make-ptux/templates-native-gpl3 /usr/share/devscripts-ptux/dh-make-ptux

@@ -1,0 +1,15 @@
+Source: dummy
+Section: unknown
+Priority: extra
+Maintainer: Ryan Kuester <rkuester@insymbols.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/dummy.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/dummy.git;a=summary
+
+Package: dummy
+Architecture: all
+Depends: ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
