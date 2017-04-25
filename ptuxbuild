@@ -1,16 +1,11 @@
 #!/bin/sh
 set -e
 
-# Record which old development files to delete if this build succeeds. Keep the
-# last .upload file because ptuxrelease uses it to repeat the last upload.
-old_files="$(find .. -name '*_*+T?*~g???????*' -not -name '*.upload')"
-old_uploads="$(find .. -name '*.upload' | sort | head -n-1)"
-
 dh_clean
 ptuxchange
 gbp buildpackage -us -uc --git-ignore-branch "$@"
 
-if [ ${PTUXBUILD_CLEAN+set} ]
-then
-	rm -f $old_files $old_uploads
-fi
+output="debian/build"
+echo "ptuxbuild: moving generated files to $output"
+mkdir -p debian/build
+ptuxfind build | xargs -I% mv % debian/build
