@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+import sys
+import os.path
+from debian.changelog import Changelog
+from debian.deb822 import Changes
+
+
+#
+# Generated files may be in either of these directories.
+#
+searchdirs = ('debian/build', '..')
+
+def search(name):
+	for d in searchdirs:
+		p = os.path.join(d, name)
+		if os.path.isfile(p):
+			return p
+	else:
+		raise IOError('can\'t find file %s' % name)
+
+
+def changes_path():
+	c = Changelog(file('debian/changelog'), max_blocks=1)
+	name = '%s_%s_amd64.changes' % (c.package, c.version)
+	return search(name)
+
+
+def buildlog_path_from_changes(path):
+	base = os.path.splitext(path)[0]
+	return base + '.build'
+
+
+def cmd_changes(argv):
+	p = changes_path()
+	print(p)
+
+
+def paths_from(changes_filename):
+	c = Changes(file(changes_filename))
+	paths = [search(f['name']) for f in c['files']]
+	return paths
+
+
+def cmd_files(argv):
+	try:
+		c = argv[2]
+	except IndexError:
+		c = changes_path()
+	paths = paths_from(c)
+	sys.stdout.write('\n'.join(paths) + '\n')
+
+
+def cmd_build(argv):
+	p = changes_path()
+	c = Changes(file(p))
+	paths = [search(f['name']) for f in c['files']]
+	paths += [p]
+	paths += [buildlog_path_from_changes(p)]
+	sys.stdout.write('\n'.join(paths) + '\n')
+
+
+def usage():
+	u = ['usage: ptuxfind <command>\ncommands:\n']
+	for k, v in cmds.iteritems():
+		u.append('    %s - %s\n' % (k, v[0]))
+	return u
+
+
+def cmd_help(argv):
+	sys.stdout.writelines(usage())
+
+
+cmds = {
+	'changes': ('path to .changes file', cmd_changes),
+	'files': ('paths to files listed in <changes> file', cmd_files),
+	'build': ('paths to files generated in last build', cmd_build),
+	'help': ('print help', cmd_help),
+}
+
+try:
+	cmd = cmds[sys.argv[1]]
+except:
+	sys.stderr.writelines(usage())
+	sys.exit(1)
+
+cmd[1](sys.argv)
