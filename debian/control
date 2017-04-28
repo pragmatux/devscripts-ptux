@@ -7,7 +7,7 @@ Standards-Version: 3.9.3
 
 Package: devscripts-ptux
 Architecture: all
-Depends: dh-make, python-debian, git-buildpackage, ${misc:Depends}
+Depends: dh-make, python-debian, git-buildpackage, python, ${misc:Depends}
 Description: Helper scripts for Pragmatux development
  This package contains helper scripts for development in Pragmatux-based
  projects. The scripts are often enhancements to Debian's own
