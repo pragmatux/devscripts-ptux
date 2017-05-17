@@ -2,6 +2,7 @@
 
 import sys
 import os.path
+import re
 from debian.changelog import Changelog
 from debian.deb822 import Changes
 
@@ -48,7 +49,17 @@ def cmd_files(argv):
 	except IndexError:
 		c = changes_path()
 	paths = paths_from(c)
-	sys.stdout.write('\n'.join(paths) + '\n')
+	print '\n'.join(paths)
+
+
+def cmd_debs(argv):
+	c = changes_path()
+	paths = paths_from(c)
+	debs = [p for p in paths if re.match('.*\.deb$', p)]
+	if debs:
+		print '\n'.join(debs)
+	else:
+		return 1
 
 
 def cmd_build(argv):
@@ -58,6 +69,8 @@ def cmd_build(argv):
 	paths += [p]
 	paths += [buildlog_path_from_changes(p)]
 	sys.stdout.write('\n'.join(paths) + '\n')
+
+
 
 
 def usage():
@@ -75,6 +88,7 @@ cmds = {
 	'changes': ('path to .changes file', cmd_changes),
 	'files': ('paths to files listed in <changes> file', cmd_files),
 	'build': ('paths to files generated in last build', cmd_build),
+	'debs': ('paths to .deb files listed in changes file', cmd_debs),
 	'help': ('print help', cmd_help),
 }
 
@@ -84,4 +98,5 @@ except:
 	sys.stderr.writelines(usage())
 	sys.exit(1)
 
-cmd[1](sys.argv)
+rc = cmd[1](sys.argv)
+sys.exit(rc)
