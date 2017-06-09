@@ -1,4 +1,14 @@
 import subprocess, re, os, json, tempfile, debian.changelog, debian.deb822, debian.debfile, stat
+from contextlib import contextmanager
+
+
+@contextmanager
+def umask(new):
+    try:
+        old = os.umask(new)
+        yield
+    finally:
+        os.umask(old)
 
 
 class AptlyClient(object):
@@ -19,7 +29,8 @@ class AptlyClient(object):
     def call(self, *args):
         cmd = ['aptly', '-config=%s' % self.config.name] + list(args)
         try:
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            with umask(0002):
+                output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             return output
         except subprocess.CalledProcessError as err:
             print err.output
@@ -72,20 +83,21 @@ class Repo(object):
     def _initialize(self):
         'Initialize the repository on disk.'
 
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        elif not os.path.isdir(self.path):
-            raise RuntimeError('cannot create repo at path %s' % self.path)
-        os.chmod(self.path, 0775 | stat.S_ISGID)
+        with umask(0002):
+            if not os.path.exists(self.path):
+                os.makedirs(self.path)
+            elif not os.path.isdir(self.path):
+                raise RuntimeError('cannot create repo at path %s' % self.path)
+            os.chmod(self.path, 0775 | stat.S_ISGID)
 
-        os.makedirs(self.privpath('scripts'))
-        os.symlink('..', self.privpath('public'))
+            os.makedirs(self.privpath('scripts'))
+            os.symlink('..', self.privpath('public'))
 
-        with file(self.privpath('version'), 'w') as f:
-            f.write('2')
+            with file(self.privpath('version'), 'w') as f:
+                f.write('2')
 
-        with file(self.privpath('default-dist'), 'w') as f:
-            f.write(self.default_dist)
+            with file(self.privpath('default-dist'), 'w') as f:
+                f.write(self.default_dist)
 
         self.dist_create(self.default_dist)
 
