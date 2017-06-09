@@ -1,4 +1,4 @@
-import subprocess, re, os, json, tempfile, debian.changelog, debian.deb822, debian.debfile
+import subprocess, re, os, json, tempfile, debian.changelog, debian.deb822, debian.debfile, stat
 
 
 class AptlyClient(object):
@@ -71,6 +71,12 @@ class Repo(object):
 
     def _initialize(self):
         'Initialize the repository on disk.'
+
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        elif not os.path.isdir(self.path):
+            raise RuntimeError('cannot create repo at path %s' % self.path)
+        os.chmod(self.path, 0775 | stat.S_ISGID)
 
         os.makedirs(self.privpath('scripts'))
         os.symlink('..', self.privpath('public'))
