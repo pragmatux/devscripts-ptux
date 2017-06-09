@@ -2,10 +2,9 @@ FROM debian:stretch
 
 LABEL maintainer "Ryan Kuester <rkuester@insymbols.com>"
 
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/start.sh"]
 
-RUN adduser --gecos ptuxrepo,,, --disabled-password --home /ptuxrepo ptuxrepo
-
+ADD start.sh users.sh /
 ADD ptuxrepo*.deb /tmp
 
 RUN dpkg --unpack /tmp/ptuxrepo*.deb \
