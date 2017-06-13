@@ -9,7 +9,7 @@ import docopt, sys, os, tempfile, re, subprocess, signal, ptuxrepo
 
 
 def main(argv):
-    args = docopt.docopt(__doc__, argv=argv)
+    args = docopt.docopt(__doc__, argv=argv, options_first=True)
 
     repo = ptuxrepo.Repo('.')
     aptly = repo.get_aptly()
