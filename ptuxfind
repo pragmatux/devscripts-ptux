@@ -23,7 +23,8 @@ def search(name):
 
 def changes_path():
 	c = Changelog(file('debian/changelog'), max_blocks=1)
-	name = '%s_%s_amd64.changes' % (c.package, c.version)
+	version = re.sub(r'[0-9]+:', r'', str(c.version)) # strip epoch
+	name = '%s_%s_amd64.changes' % (c.package, version)
 	return search(name)
 
 
