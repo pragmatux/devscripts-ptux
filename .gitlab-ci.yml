@@ -3,7 +3,7 @@
 # deployment tools used by the CI scripts. Ordinarily, these tools would simply
 # be preinstalled in the CI image and found on the PATH.
 
-image: registry.gitlab.com/pragmatux/build-essential-image:stretch
+image: registry.gitlab.com/pragmatux/build-essential-image:wheezy
 
 before_script:
 - export DEBIAN_FRONTEND=noninteractive
@@ -18,9 +18,10 @@ ptuxbuild:
   stage: package
   script:
   - apt-get -yq install --no-install-recommends
+      equivs
       git-buildpackage
       python-debian
-  - apt-get -yq build-dep .
+  - mk-build-deps -i -r -t 'apt-get -yq --no-install-recommends'
   - PATH=.:$PATH ptuxbuild
   artifacts:
     paths:
