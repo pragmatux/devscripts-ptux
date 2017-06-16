@@ -10,20 +10,9 @@ before_script:
 - apt-get -yq -o Acquire::Pdiffs=false update
 
 stages:
-- test
 - package
+- test
 - deploy
-
-py unittest:
-  stage: test
-  script:
-  - apt-get -yq install --no-install-recommends
-      python-docopt
-      python-debian
-      python-yaml
-      aptly
-  - cd ptuxrepo.d
-  - python -m unittest discover
 
 ptuxbuild:
   stage: package
@@ -37,6 +26,14 @@ ptuxbuild:
     paths:
     - debian/build/*
     - debian/changelog
+
+py unittest:
+  stage: test
+  script:
+  - dpkg -i debian/build/ptuxrepo*.deb || true
+  - apt-get -yq install -f
+  - cd ptuxrepo.d
+  - python -m unittest discover
 
 docker image:
   stage: deploy
@@ -58,11 +55,9 @@ ptuxrepo add:
   environment:
     name: $CI_COMMIT_REF_NAME
   script:
-  - apt-get -yq install --no-install-recommends
-      python-docopt
-      python-debian
-      python-yaml
-      openssh-client
+  - dpkg -i debian/build/ptuxrepo*.deb || true
+  - apt-get -yq install -f
+
   #
   # The distribution named with the branch name is targeted unless overridden
   # with a DEPLOY_DIST_$branch variable.
