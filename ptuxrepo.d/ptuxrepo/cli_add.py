@@ -6,13 +6,17 @@ options:
 
 Add package(s) to a package repository. With no arguments, add the package(s)
 specified in the current .changes file to the default repository. The current
-.changes file, found in the parent of the working directory, is selected
-according the package version in the head entry of debian/changelog.
+.changes file, found in the parent of the working directory or in
+./debian/build, is selected according the package version in the head entry of
+debian/changelog.
 
 A repository other than the default may be specified on the command line. The
-default repository is taken from the environment variable PTUXREPO_DIR. Remote
-repositories are accessed via the ssh protocol, and specified in the ssh URI
-syntax used by git-fetch(1):
+default repository is taken first from the environment variable PTUXREPO_REPO,
+and secondly from the configuration key {"default": {"repo"}} (see ptuxrepo
+config --help). The repository is either a path in the local filesytem, a
+remote repository specification, or a name referring to a repository specified
+in the configuration key {"repositories"}. Remote repositories are accessed via
+the ssh protocol, and specified in the ssh URI syntax used by git-fetch(1):
 
     <repository> := ssh://[user@]host.tld[:port]/path/to/repo
 
@@ -27,7 +31,29 @@ created.
 '''
 
 
-import docopt, sys, os, tempfile, re, subprocess, signal, ptuxrepo
+import docopt, sys, os, tempfile, re, subprocess, signal, ptuxrepo, config
+
+
+class Remote:
+    def __init__(self, uri):
+        m = re.match(r'ssh://(?P<auth>[^:/]+):?(?P<port>[0-9]*)(?P<path>/.*)', uri)
+        if m:
+            self.authority = m.group('auth')
+            self.path = m.group('path')
+            if self.path == '':
+                self.path = '.'
+            self.port = m.group('port')
+            if self.port == '':
+                self.port = '22'
+        else:
+            raise ValueError('not a valid remote URI')
+
+
+def parse_remote(uri):
+    try:
+        return Remote(uri)
+    except ValueError:
+        return None
 
 
 def main(argv):
@@ -35,10 +61,24 @@ def main(argv):
 
     repo = args['<repository>']
     if repo is None:
-        try:
-            repo = os.environ['PTUXREPO_REPO']
-        except KeyError:
-            raise RuntimeError('must give <repository> argument or set PTUXREPO_REPO')
+        repo = os.environ.get('PTUXREPO_REPO')
+        if repo is None:
+            repo = config.get(('default', 'repository'))
+            if repo is None:
+                raise RuntimeError('must give <repository> argument or set PTUXREPO_REPO')
+
+    remote = parse_remote(repo)
+    if remote is None:
+        if os.path.isdir(repo):
+            path = repo
+        else:
+            c = config.get(('repositories', repo))
+            if c:
+                remote = parse_remote(c)
+                if remote is None:
+                    path = c
+            else:
+                raise RuntimeError('repository {} not found'.format(repo))
 
     ingestables = args['<ingestables>']
     for i in ingestables:
@@ -52,26 +92,13 @@ def main(argv):
     if not ingestables:
         ingestables = [ptuxrepo.find_changes()]
 
-    m = re.match(r'ssh://(?P<repo>[^:/]+):?(?P<port>[0-9]*)(?P<path>/.*)', repo)
-    if m is not None:
-        remote = m.group('repo')
-        path = m.group('path')
-        if path == '':
-            path = '.'
-        port = m.group('port')
-        if port == '':
-            port = '22'
-    else:
-        remote = None
-        path = repo
-
     if remote is None:
         if args['--dist-force']:
             do_local(path, ingestables, dist=args['--dist-force'], create_dist=True)
         else:
             do_local(path, ingestables, dist=args['--dist'])
     else:
-        do_remote(remote, port, path, ingestables, args['--dist'], args['--dist-force'])
+        do_remote(remote.authority, remote.port, remote.path, ingestables, args['--dist'], args['--dist-force'])
 
 
 def do_local(path, ingestables, dist=None, create_dist=False):

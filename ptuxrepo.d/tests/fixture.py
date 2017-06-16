@@ -29,7 +29,7 @@ class DummyPackage:
 
 class Repo(object):
     def __init__(self):
-        self.path = tempfile.mkdtemp()
+        self.path = tempfile.mkdtemp(prefix='ptuxrepo-')
         cli('init', self.path)
 
     def close(self):
@@ -84,3 +84,19 @@ def cwd(newdir):
         yield
     finally:
         os.chdir(olddir)
+
+
+@contextmanager
+def tempdir():
+    try:
+        d = tempfile.mkdtemp(prefix='ptuxrepo-')
+        yield d
+    finally:
+        shutil.rmtree(d)
+
+
+@contextmanager
+def tempcwd():
+    with tempdir() as d:
+        with cwd(d):
+            yield
