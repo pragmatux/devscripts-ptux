@@ -20,6 +20,7 @@ py unittest:
   - apt-get -yq install --no-install-recommends
       python-docopt
       python-debian
+      python-yaml
       aptly
   - cd ptuxrepo.d
   - python -m unittest discover
@@ -60,6 +61,7 @@ ptuxrepo add:
   - apt-get -yq install --no-install-recommends
       python-docopt
       python-debian
+      python-yaml
       openssh-client
   #
   # The distribution named with the branch name is targeted unless overridden
