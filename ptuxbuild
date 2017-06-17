@@ -3,7 +3,7 @@ set -e
 
 dh_clean
 ptuxchange
-gbp buildpackage -us -uc --git-ignore-branch "$@"
+git-buildpackage -us -uc --git-ignore-branch "$@"
 
 output="debian/build"
 echo "ptuxbuild: moving generated files to $output"
