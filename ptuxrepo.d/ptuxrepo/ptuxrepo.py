@@ -23,17 +23,19 @@ class AptlyClient(object):
         with tempfile.NamedTemporaryFile(prefix='ptuxrepo-conf', delete=False) as self.config:
             json.dump(cfg, self.config)
 
+        self.env = os.environ.copy()
+        self.env['PATH'] = '/usr/lib/ptuxrepo/aptly:' + self.env['PATH']
+
     def __del__(self):
         os.unlink(self.config.name)
 
     def call(self, *args):
-        cmd = ['aptly', '-config=%s' % self.config.name] + list(args)
         try:
             with umask(0002):
-                output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-            return output
-        except subprocess.CalledProcessError as err:
-            print err.output
+                cmd = ['aptly', '-config=%s' % self.config.name] + list(args)
+                return subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=self.env)
+        except subprocess.CalledProcessError as e:
+            print e.output
             raise
 
     def repo_list(self):
