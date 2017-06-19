@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Ryan Kuester <rkuester@insymbols.com>
 Build-Depends: debhelper (>= 9), python, dh-python, python-setuptools
 Standards-Version: 3.9.3
-X-Python-Version: 2.7
+X-Python-Version: ${python:Versions}
 
 Package: devscripts-ptux
 Architecture: all
@@ -19,6 +19,6 @@ Description: Helper scripts for Pragmatux development
 
 Package: ptuxrepo
 Architecture: all
-Depends: python2.7, python-docopt, python-debian, python-yaml, openssh-client, ${misc:Depends}
+Depends: ${python:Depends}, openssh-client, ${misc:Depends}
 Description: Pragmatux APT repository tools
  This package contains tools for managing APT repositories.

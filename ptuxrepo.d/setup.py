@@ -8,6 +8,6 @@ setup(
     author_email='pragmatux-users@lists.pragmatux.org',
     license='GPL',
     packages=find_packages(exclude=['tests']),
-    install_requires=['docopt'],
+    install_requires=['docopt', 'debian', 'yaml'],
     entry_points={ 'console_scripts': ['ptuxrepo=ptuxrepo.cli:main'] }
 )
