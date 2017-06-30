@@ -161,16 +161,16 @@ def do_remote(remote, port, path, ingestables, dist=None, dist_force=False):
                                stdin=tar.stdout,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
-
         tar.stdout.close() # lets tar rx SIGPIPE if ssh exits first
-        if tar.wait() != 0:
-            raise Exception('tar failed')
 
         out, err = ssh.communicate()
         if ssh.returncode == 0:
             print out,
         else:
             raise RuntimeError(err)
+
+        if tar.wait() != 0:
+            raise Exception('tar failed')
 
     finally:
         if agent_pid:
