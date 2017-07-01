@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 26 May 2017 12:19:53 -0500
+Source: dummy
+Binary: dummy
+Architecture: source all
+Version: 2.0
+Distribution: unstable
+Urgency: low
+Maintainer: Ryan Kuester <rkuester@insymbols.com>
+Changed-By: Ryan Kuester <rkuester@insymbols.com>
+Description: 
+ dummy      - <insert up to 60 chars description>
+Changes: 
+ dummy (2.0) unstable; urgency=low
+ .
+   * Initial Release.
+Checksums-Sha1: 
+ 74b697685a40bf81c94de07ee887518d244ef0c0 523 dummy_2.0.dsc
+ 72993ac86484bbede82bb8aa4bd4b178e74055ff 1553 dummy_2.0.tar.gz
+ 0541352d41d7160697a3b90420ffd123664e0bcf 1856 dummy_2.0_all.deb
+Checksums-Sha256: 
+ 9d08d277964c1c05bb84e30254959e6b449b4272cb26862c078de670bbc9ec8e 523 dummy_2.0.dsc
+ 7b7b24e2d7bdf9535e5c038d2f57b7baee15042f98cbb40a45396ed1142b7ea2 1553 dummy_2.0.tar.gz
+ 99a6e3e328bf30e324acd768546f6b9bdeb44483b40aa048a014c3e076e59307 1856 dummy_2.0_all.deb
+Files: 
+ 4093f6e1edf97ef2174da89b3fda8cf7 523 unknown extra dummy_2.0.dsc
+ 87f9f8ace72bc30c81eea726ca51dfbe 1553 unknown extra dummy_2.0.tar.gz
+ 6727a5652a9a1108eceef3a0e91ea0b1 1856 unknown extra dummy_2.0_all.deb

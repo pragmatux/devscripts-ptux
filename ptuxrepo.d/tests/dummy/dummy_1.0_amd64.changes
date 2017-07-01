@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 26 May 2017 11:19:53 -0500
+Source: dummy
+Binary: dummy
+Architecture: source all
+Version: 1.0
+Distribution: unstable
+Urgency: low
+Maintainer: Ryan Kuester <rkuester@insymbols.com>
+Changed-By: Ryan Kuester <rkuester@insymbols.com>
+Description: 
+ dummy      - <insert up to 60 chars description>
+Changes: 
+ dummy (1.0) unstable; urgency=low
+ .
+   * Initial Release.
+Checksums-Sha1: 
+ 92244f0e69394b15ed2eb8b82b6a30ae13a7030f 523 dummy_1.0.dsc
+ 5ec97b681bacd5fc6657d432361b661e2d1c2d8d 1565 dummy_1.0.tar.gz
+ 30d14b0b58b510424a359ddc339304ce8379aaae 1844 dummy_1.0_all.deb
+Checksums-Sha256: 
+ 8ac765dc74844df95325e2cc2efc75d7986da38a5d7663160552b0bf89e32c97 523 dummy_1.0.dsc
+ c37d68e1ef10d975260474e16c5da11ddee7912458573f00656497dabfe988ef 1565 dummy_1.0.tar.gz
+ bced6f803de959bc3cc886f44cf236b04e7f2bcf27d810037d4fb2d0734efd59 1844 dummy_1.0_all.deb
+Files: 
+ 15d405437e738bcacb563fb6f64eccd9 523 unknown extra dummy_1.0.dsc
+ 1375a5b3eda625175148f5af20f3801c 1565 unknown extra dummy_1.0.tar.gz
+ 9f67538f94494395429a82cc6caa5544 1844 unknown extra dummy_1.0_all.deb
