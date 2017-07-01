@@ -152,7 +152,7 @@ def do_remote(remote, port, path, ingestables, dist=None, dist_force=False):
             trap "rm -rf $tmp" EXIT
             (cd $tmp && \
                 tar xz && \
-                PATH=/home/rkuester/ptux/devscripts-ptux/src:$PATH {remote_cmd})
+                {remote_cmd})
             '''.format(remote_cmd=' '.join(remote_cmd))
         ssh_cmd = ['ssh', '-p', port, remote, remote_script]
         if key:
