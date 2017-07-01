@@ -2,12 +2,13 @@ Source: devscripts-ptux
 Section: devel
 Priority: extra
 Maintainer: Ryan Kuester <rkuester@insymbols.com>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 9), python, dh-python, python-setuptools
 Standards-Version: 3.9.3
+X-Python-Version: ${python:Versions}
 
 Package: devscripts-ptux
 Architecture: all
-Depends: dh-make, ${misc:Depends}
+Depends: dh-make, python-debian, git-buildpackage, ptuxrepo (= ${binary:Version}), ${misc:Depends}
 Description: Helper scripts for Pragmatux development
  This package contains helper scripts for development in Pragmatux-based
  projects. The scripts are often enhancements to Debian's own
@@ -15,3 +16,9 @@ Description: Helper scripts for Pragmatux development
  bear a similar name, e.g., debchange becomes ptuxchange.
  .
  ptuxmake is aliased to dh-make-ptux via symlink.
+
+Package: ptuxrepo
+Architecture: all
+Depends: ${python:Depends}, openssh-client, ${misc:Depends}
+Description: Pragmatux APT repository tools
+ This package contains tools for managing APT repositories.

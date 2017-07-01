@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Wrapper for debrelease which uses dput as the default uploader and looks for
+# a previous .upload file to determine the repository profile to use if a name
+# is not given on the command line.
+#
+set -e
+
+test -r /etc/devscripts.conf && . /etc/devscripts.conf
+test -r $HOME/.devscripts && . $HOME/.devscripts
+
+default_profile=""
+if ! expr "$*" : '^[[:alnum:]]' >/dev/null \
+&& ! expr "$*" : '.* [[:alpha:]]' >/dev/null \
+&& [ "$(ls ../*.*.upload)" ]
+then
+	# There are no arguments that look like a profile name. Use
+	# the profile used in the last upload.
+	default_profile=$(expr "$(ls -v ../*.upload | sort | tail -n1)" : '.*\.\(.*\).upload$')
+fi
+
+# debrelease defaults to using dupload, but we want the default to be dput.
+uploader=""
+if [ -z "${DEBRELEASE_UPLOADER:+set}" ]
+then
+	uploader="--dput"
+fi
+
+exec debrelease $uploader "$@" $default_profile

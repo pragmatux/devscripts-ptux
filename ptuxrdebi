@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Where debi installs the current version of the generated package, ptux*rdebi*
+# installs the same on a remote machine, which defaults to PTUX_DEVICE_SSHNAME if
+# it is set.
+#
+set -e
+set -x
+
+debs="$(ptuxdebs)"
+sshname=${1:-${PTUX_DEVICE_SSHNAME}}
+test "$sshname" || { echo usage && exit 1; }
+
+scp $debs $sshname:
+ssh $sshname dpkg -i $(echo $debs | sed 's,\.\./,,g')

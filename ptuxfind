@@ -1,0 +1,103 @@
+#!/usr/bin/python
+
+import sys
+import os.path
+import re
+from debian.changelog import Changelog
+from debian.deb822 import Changes
+
+
+#
+# Generated files may be in either of these directories.
+#
+searchdirs = ('debian/build', '..')
+
+def search(name):
+	for d in searchdirs:
+		p = os.path.join(d, name)
+		if os.path.isfile(p):
+			return p
+	else:
+		raise IOError('can\'t find file %s' % name)
+
+
+def changes_path():
+	c = Changelog(file('debian/changelog'), max_blocks=1)
+	version = re.sub(r'[0-9]+:', r'', str(c.version)) # strip epoch
+	name = '%s_%s_amd64.changes' % (c.package, version)
+	return search(name)
+
+
+def buildlog_path_from_changes(path):
+	base = os.path.splitext(path)[0]
+	return base + '.build'
+
+
+def cmd_changes(argv):
+	p = changes_path()
+	print(p)
+
+
+def paths_from(changes_filename):
+	c = Changes(file(changes_filename))
+	paths = [search(f['name']) for f in c['files']]
+	return paths
+
+
+def cmd_files(argv):
+	try:
+		c = argv[2]
+	except IndexError:
+		c = changes_path()
+	paths = paths_from(c)
+	print '\n'.join(paths)
+
+
+def cmd_debs(argv):
+	c = changes_path()
+	paths = paths_from(c)
+	debs = [p for p in paths if re.match('.*\.deb$', p)]
+	if debs:
+		print '\n'.join(debs)
+	else:
+		return 1
+
+
+def cmd_build(argv):
+	p = changes_path()
+	c = Changes(file(p))
+	paths = [search(f['name']) for f in c['files']]
+	paths += [p]
+	paths += [buildlog_path_from_changes(p)]
+	sys.stdout.write('\n'.join(paths) + '\n')
+
+
+
+
+def usage():
+	u = ['usage: ptuxfind <command>\ncommands:\n']
+	for k, v in cmds.iteritems():
+		u.append('    %s - %s\n' % (k, v[0]))
+	return u
+
+
+def cmd_help(argv):
+	sys.stdout.writelines(usage())
+
+
+cmds = {
+	'changes': ('path to .changes file', cmd_changes),
+	'files': ('paths to files listed in <changes> file', cmd_files),
+	'build': ('paths to files generated in last build', cmd_build),
+	'debs': ('paths to .deb files listed in changes file', cmd_debs),
+	'help': ('print help', cmd_help),
+}
+
+try:
+	cmd = cmds[sys.argv[1]]
+except:
+	sys.stderr.writelines(usage())
+	sys.exit(1)
+
+rc = cmd[1](sys.argv)
+sys.exit(rc)

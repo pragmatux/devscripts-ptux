@@ -13,12 +13,19 @@ write_distributions () {
 	cat >$dir/conf/distributions <<-END
 		Codename: master
 		Suite: unstable
-		AlsoAcceptFor: UNRELEASED, any
 		Components: main
+		UDebComponents: main
 		Architectures: source armhf armel amd64
 		Label: Pragmatux
 		Description: <insert description here>
 		Log: log
+	END
+}
+
+write_options () {
+	mkdir -p $dir/conf
+	cat >$dir/conf/options <<-END
+		ignore wrongdistribution
 	END
 }
 
@@ -46,6 +53,7 @@ write_update_script () {
 }
 
 write_distributions
+write_options
 write_incoming
 write_update_script
 find $dir -type d | xargs chmod g+s

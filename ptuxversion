@@ -1,6 +1,16 @@
 #!/bin/sh
 set -e
 
+# Commits along the authoritative branch are considered “release commits”
+# (i.e., they contribute to the version number), with the exception of commits
+# that are not in the branch’s upstream, should it have one. Commits not in the
+# authoritative branch, or those which are not in the authoritative branch’s
+# upstream should it have one, are considered “development commits,” and
+# receive a version number based on the time.
+#
+# The authoritative branch defaults to “master.” If there is no authoritative
+# branch, the authoritative part of the version number is “0.”
+
 tag_and_distance ()
 {
 	commit="$1"
@@ -20,11 +30,17 @@ tag_and_distance ()
 		# tag, unless tag+distance is equal to the distance above the
 		# base, in which case output one, summed result.
 
+		# Select the debian/* tag name. There might be other tags
+		# pointing at this commit, e.g., from upstream.
+		tag=$(git tag --list --points-at $tag debian/\*)
+
 		if [ "${tag#debian/}" = "$(git rev-list --count ${base:+$base..}$tag)" ]; then
 			echo -n $(git rev-list --count ${base:+$base..}$commit)
 		else
+			name=$(echo -n ${tag#debian/} | tr _ :)
+				# underscores represent the epoch seperator
 			dist=$(git rev-list --count $tag..$commit)
-			echo -n ${tag#debian/}$([ $dist -gt 0 ] && echo -n +$dist)
+			echo -n ${name}$([ $dist -gt 0 ] && echo -n +$dist)
 		fi
 	else
 		dist=$(git rev-list --count ${base:+$base..}$commit)
@@ -32,10 +48,15 @@ tag_and_distance ()
 	fi
 }
 
+is_dirty ()
+{
+	! git ls-files --modified --others --exclude-standard | sed q1 >/dev/null
+}
+
 git_suffix ()
 {
 	short="$(git rev-parse --short HEAD)"
-	dirty="$(git diff-index --quiet HEAD || echo -n ~dirty)"
+	is_dirty && dirty="~dirty" || dirty=""
 	echo -n \~g$short$dirty
 }
 
@@ -44,43 +65,63 @@ development_suffix ()
 	echo -n +T$(date +%s)
 }
 
-has_upstream ()
+auth_exists ()
 {
-	branch=$1
-	git rev-parse --verify $branch@{upstream} >/dev/null 2>&1
+	git rev-parse --verify $authority >/dev/null 2>&1
+}
+
+auth_has_upstream ()
+{
+	git rev-parse --verify $auth_upstream >/dev/null 2>&1
+}
+
+ref_is_contained_in ()
+{
+	ref=$1
+	in=$2
+
+	test "$(git merge-base $ref $in)" = "$(git rev-parse $ref)"
 }
 
 is_development ()
 {
-	# This is a development version if we're ahead of upstream or if we
-	# don't have an upstream
-
-	if ! has_upstream HEAD \
-	|| [ "$(git merge-base HEAD HEAD@{upstream})" \
-		!= "$(git rev-parse HEAD)" ]; then
-		return 0
+	if is_dirty; then
+		true
+	elif auth_exists; then
+		if auth_has_upstream; then
+			! ref_is_contained_in HEAD $auth_upstream
+		else
+			! ref_is_contained_in HEAD $authority
+		fi
 	else
-		return 1
+		true
 	fi
 }
 
 print_version ()
 {
 	# Print upstream's version
-	if has_upstream HEAD; then
-		echo -n $(tag_and_distance HEAD@{upstream})
+	if auth_exists; then
+		if auth_has_upstream && ! [ "$force_authoritative" ]; then
+			echo -n $(tag_and_distance $auth_upstream)
+		else
+			echo -n $(tag_and_distance $authority)
+		fi
 	else
 		echo -n 0
 	fi
 
 	# Print the development header if we're ahead of upstream
-	if is_development; then
+	if is_development && ! [ "$force_authoritative" ]; then
 		echo -n $(development_suffix)
 	fi
 
 	# Print the git suffix, always
 	echo $(git_suffix)
 }
+
+authority="master"
+auth_upstream="$authority@{upstream}"
 
 case "$#,$1" in
 	0,*)
@@ -90,6 +131,12 @@ case "$#,$1" in
 	1,--check-development)
 		is_development
 		;;
+
+	1,--force-authoritative)
+		force_authoritative=1
+		print_version
+		;;
+
 	*)
 		echo Error 1>&2
 		exit 1

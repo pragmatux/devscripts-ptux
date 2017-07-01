@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Generate a dput-ng profile for the given repository
+#
+set -e
+usage="ptuxrelease-add REPONAME DIST scp://[user@]server/path/to/aptly/root"
+
+fatal()
+{
+	echo "$@" 1>&2
+	exit 1
+}
+
+test $# -eq 3 || fatal "usage: $usage"
+name=$1
+dist=$2
+uri=$3
+repo=$name-$dist
+
+test $(expr "$uri" : "scp://") -ne 0 || fatal "error: must use scp"
+path=$(expr "$uri" : "scp://[^@/]*@\?[^/]\+\(.\+\)") || fatal "usage: $usage"
+auth=$(expr "$uri" : "scp://\([^/]\+\)/") || fatal "usage: $usage"
+if expr match "$auth" ".\+@" >/dev/null; then
+	user=$(expr "$uri" : "scp://\([^@/]\+\)@")
+	fqdn=$(expr "$auth" : ".\+@\(.\+\)") || fatal "usage: $usage"
+else
+	user=$(whoami)
+	fqdn=$auth
+fi
+
+mkdir -p ~/.dput.d/profiles
+cat >~/.dput.d/profiles/$repo.json <<EOF
+{
+	"fqdn": "$fqdn",
+	"method": "scp",
+	"login": "$user",
+	"full_upload_log": true,
+	"incoming": "$path/incoming/$repo",
+	"post_upload_command":
+		"ssh $user@$fqdn sh -c '\"cd $path && ptuxrepo-ingest $repo\"'",
+	"-hooks": [ "gpg", "allowed-distribution" ]
+}
+EOF

@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+usage="\
+usage: ${0##*/}
+
+Removes package build products with local version numbers in the
+parent directory."
+
+case "$1" in
+?*)
+	printf "$usage\n"
+	exit 1
+	;;
+esac
+
+for package in $(grep -E ^Package: debian/control | cut -d' ' -f2)
+do
+	find .. -type f \
+	| grep -E "^$package_.*\+T[0-9]+~g[0-9a-f]+..+" \
+	| xargs rm -f
+done
