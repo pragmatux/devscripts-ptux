@@ -1,11 +1,40 @@
 #!/bin/sh
+# usage: ptuxbuild [<args>...]
+#
+# Build the package in the working directory. All arguments are passed to
+# git-buildpackage.
+#
+# If PTUXBUILD_DOCKER_IMAGE is defined in the environment, run ptuxbuild in a
+# container based on the given image.
+
 set -e
 
-dh_clean
-ptuxchange
-git-buildpackage -us -uc --git-ignore-branch "$@"
+run_in_container ()
+{
+	exec docker run \
+		--volume=$HOME:$HOME \
+		--workdir=$PWD \
+		--user=$(id --user):$(id --group) \
+		--hostname=container \
+		--entrypoint=ptuxbuild \
+		$PTUXBUILD_DOCKER_IMAGE \
+		"$@"
+}
 
-output="debian/build"
-echo "ptuxbuild: moving generated files to $output"
-mkdir -p debian/build
-ptuxfind build | xargs -I% mv % debian/build
+main ()
+{
+	dh_clean
+	ptuxchange
+	git-buildpackage -us -uc --git-ignore-branch "$@"
+
+	output="debian/build"
+	echo "ptuxbuild: moving generated files to $output"
+	mkdir -p debian/build
+	ptuxfind build | xargs -I% mv % debian/build
+}
+
+if [ "$PTUXBUILD_DOCKER_IMAGE" ]; then
+	run_in_container "$@"
+else
+	main "$@"
+fi
