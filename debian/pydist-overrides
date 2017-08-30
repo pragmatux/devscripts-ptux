@@ -1,2 +1,3 @@
-debian python-debian
-yaml python-yaml
+docopt python-docopt
+python_debian python-debian
+PyYAML python-yaml
