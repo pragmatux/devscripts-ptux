@@ -19,6 +19,6 @@ Description: Helper scripts for Pragmatux development
 
 Package: ptuxrepo
 Architecture: all
-Depends: ${python:Depends}, openssh-client, ${misc:Depends}
+Depends: ${python:Depends}, python-pkg-resources, openssh-client, ${misc:Depends}
 Description: Pragmatux APT repository tools
  This package contains tools for managing APT repositories.
