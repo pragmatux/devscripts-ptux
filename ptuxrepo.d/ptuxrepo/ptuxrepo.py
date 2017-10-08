@@ -166,6 +166,11 @@ class Repo(object):
             out += aptly.repo_remove(dist, obsoletes)
 
         aptly.publish_update(dist)
+
+        post_add_hook = self.get_script('post-add')
+        if post_add_hook:
+            out += subprocess.check_output([post_add_hook] + ingestables)
+
         return out
 
 
