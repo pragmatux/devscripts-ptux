@@ -65,14 +65,9 @@ development_suffix ()
 	echo -n +T$(date +%s)
 }
 
-auth_exists ()
+ref_exists ()
 {
-	git rev-parse --verify $authority >/dev/null 2>&1
-}
-
-auth_has_upstream ()
-{
-	git rev-parse --verify $auth_upstream >/dev/null 2>&1
+	git rev-parse --verify $1 >/dev/null 2>&1
 }
 
 ref_is_contained_in ()
@@ -87,12 +82,8 @@ is_development ()
 {
 	if is_dirty; then
 		true
-	elif auth_exists; then
-		if auth_has_upstream; then
-			! ref_is_contained_in HEAD $auth_upstream
-		else
-			! ref_is_contained_in HEAD $authority
-		fi
+	elif ref_exists $authority; then
+		! ref_is_contained_in HEAD $authority
 	else
 		true
 	fi
@@ -101,17 +92,13 @@ is_development ()
 print_version ()
 {
 	# Print upstream's version
-	if auth_exists; then
-		if auth_has_upstream && ! [ "$force_authoritative" ]; then
-			echo -n $(tag_and_distance $auth_upstream)
-		else
-			echo -n $(tag_and_distance $authority)
-		fi
+	if ref_exists $authority; then
+		echo -n $(tag_and_distance $authority)
 	else
 		echo -n 0
 	fi
 
-	# Print the development header if we're ahead of upstream
+	# Print the development header
 	if is_development && ! [ "$force_authoritative" ]; then
 		echo -n $(development_suffix)
 	fi
@@ -120,8 +107,13 @@ print_version ()
 	echo $(git_suffix)
 }
 
-authority="master"
-auth_upstream="$authority@{upstream}"
+if ref_exists origin/HEAD; then
+	authority=origin/HEAD
+elif ref_exists master@{upstream}; then
+	authority=master@{upstream}
+else
+	authority=master
+fi
 
 case "$#,$1" in
 	0,*)
