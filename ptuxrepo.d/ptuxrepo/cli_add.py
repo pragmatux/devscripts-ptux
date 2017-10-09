@@ -34,51 +34,8 @@ created.
 import docopt, sys, os, tempfile, re, subprocess, signal, ptuxrepo, config
 
 
-class Remote:
-    def __init__(self, uri):
-        m = re.match(r'ssh://(?P<auth>[^:/]+):?(?P<port>[0-9]*)(?P<path>/.*)', uri)
-        if m:
-            self.authority = m.group('auth')
-            self.path = m.group('path')
-            if self.path == '':
-                self.path = '.'
-            self.port = m.group('port')
-            if self.port == '':
-                self.port = '22'
-        else:
-            raise ValueError('not a valid remote URI')
-
-
-def parse_remote(uri):
-    try:
-        return Remote(uri)
-    except ValueError:
-        return None
-
-
 def main(argv):
     args = docopt.docopt(__doc__, argv=argv)
-
-    repo = args['<repository>']
-    if repo is None:
-        repo = os.environ.get('PTUXREPO_REPO')
-        if repo is None:
-            repo = config.get(('default', 'repository'))
-            if repo is None:
-                raise RuntimeError('must give <repository> argument or set PTUXREPO_REPO')
-
-    remote = parse_remote(repo)
-    if remote is None:
-        if os.path.isdir(repo):
-            path = repo
-        else:
-            c = config.get(('repositories', repo))
-            if c:
-                remote = parse_remote(c)
-                if remote is None:
-                    path = c
-            else:
-                raise RuntimeError('repository {} not found'.format(repo))
 
     ingestables = args['<ingestables>']
     for i in ingestables:
@@ -92,17 +49,26 @@ def main(argv):
     if not ingestables:
         ingestables = [ptuxrepo.find_changes()]
 
-    if remote is None:
-        if args['--dist-force']:
-            do_local(path, ingestables, dist=args['--dist-force'], create_dist=True)
-        else:
-            do_local(path, ingestables, dist=args['--dist'])
+    repo_info = config.choose_repository(args['<repository>'])
+
+    create_dist = False
+    dist = repo_info.default_dist
+    if args['--dist-force']:
+        dist = args['--dist-force']
+        create_dist = True
+    elif args['--dist']:
+        dist = args['--dist']
+
+    if repo_info.path:
+        backend = do_local
     else:
-        do_remote(remote.authority, remote.port, remote.path, ingestables, args['--dist'], args['--dist-force'])
+        backend = do_remote
+
+    backend(repo_info, ingestables, dist, create_dist)
 
 
-def do_local(path, ingestables, dist=None, create_dist=False):
-    repo = ptuxrepo.Repo(path)
+def do_local(repo_info, ingestables, dist=None, create_dist=False):
+    repo = ptuxrepo.Repo(repo_info.path)
 
     override = repo.get_script('add')
     if override:
@@ -115,7 +81,7 @@ def do_local(path, ingestables, dist=None, create_dist=False):
     print output,
 
 
-def do_remote(remote, port, path, ingestables, dist=None, dist_force=False):
+def do_remote(repo_info, ingestables, dist=None, create_dist=False):
     agent_pid = None
     try:
         # optinally start custom ssh-agent with private key
@@ -140,9 +106,9 @@ def do_remote(remote, port, path, ingestables, dist=None, dist_force=False):
         tar = subprocess.Popen(tar_cmd, stdout=subprocess.PIPE)
 
         # run ptuxrepo-add on server via ssh
-        remote_cmd = ['ptuxrepo', 'add', path] + ingestables
-        if dist_force:
-            remote_cmd[2:2] = ['--dist-force', dist_force]
+        remote_cmd = ['ptuxrepo', 'add', repo_info.url.path] + ingestables
+        if create_dist:
+            remote_cmd[2:2] = ['--dist-force', dist]
         elif dist:
             remote_cmd[2:2] = ['--dist', dist]
 
@@ -154,7 +120,7 @@ def do_remote(remote, port, path, ingestables, dist=None, dist_force=False):
                 tar xz && \
                 {remote_cmd})
             '''.format(remote_cmd=' '.join(remote_cmd))
-        ssh_cmd = ['ssh', '-p', port, remote, remote_script]
+        ssh_cmd = ['ssh', '-p', repo_info.url.port, repo_info.url.authority, remote_script]
         if key:
             ssh_cmd[1:1] = ['-o', 'stricthostkeychecking=no']
         ssh = subprocess.Popen(ssh_cmd,

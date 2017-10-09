@@ -45,13 +45,31 @@ class Add(fixture.InEmptyRepo):
         self.assert_has_binary(self.dp1, dist=dist)
 
     def test_reponame(self):
-        'repo comes from config if not absolute'
+        'repo comes from config if name is specified'
 
         with fixture.tempcwd():
-            c = ('repositories:\n'
-                 '  test/funky: {}\n'.format(self.repo.path))
+            c = ('repos:\n'
+                 '  test/funky:\n'
+                 '    path: {}\n'.format(self.repo.path))
             with file('.ptuxrepo.conf', 'w') as f:
                 f.write(c)
 
             fixture.cli('add', 'test/funky', self.dp1.changes)
+            self.assert_has_binary(self.dp1)
+
+    def test_reponame(self):
+        'repo comes from config default if specified'
+
+        with fixture.tempcwd():
+            c = ('default:\n'
+                 '  repo: test/funky\n'
+                 'repos:\n'
+                 '  test/funky:\n'
+                 '    path: {}\n'.format(self.repo.path))
+
+            with fixture.cwd(self.dp1.dir):
+                with file('.ptuxrepo.conf', 'w') as f:
+                    f.write(c)
+                fixture.cli('add')
+
             self.assert_has_binary(self.dp1)
