@@ -1,0 +1,4 @@
+BUGS
+- statically included aptly is architecture-specific
+- misleading error message about format when repo directory doesn't exist
+- `add` prints only last package when multiple .debs given as args
