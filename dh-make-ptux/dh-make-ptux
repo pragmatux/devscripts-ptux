@@ -45,10 +45,9 @@ case "$#,$1" in
 	;;
 1,*)
 	test -d $name && { echo error: directory $name already exists >&2; exit 1; }
-	srcdir=$name/src
-	mkdir -p $srcdir
-	debianize $name $srcdir
-	git_init $srcdir
+	mkdir -p $name
+	debianize $name $name
+	git_init $name
 	;;
 2,*)
 	test -d $dir || { echo "error: $dir is not a directory" >&2; exit 1; }
