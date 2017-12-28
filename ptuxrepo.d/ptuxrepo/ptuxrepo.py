@@ -33,7 +33,7 @@ class AptlyClient(object):
         try:
             with umask(0002):
                 cmd = ['aptly', '-config=%s' % self.config.name] + list(args)
-                return subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=self.env)
+                return subprocess.check_output(cmd, env=self.env)
         except subprocess.CalledProcessError as e:
             print e.output
             raise
