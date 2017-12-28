@@ -10,9 +10,27 @@ def umask(new):
     finally:
         os.umask(old)
 
+def we_own(path):
+    st = os.stat(path)
+    uid = os.getuid()
+    return st.st_uid == uid
+
+
+def fixup_db_perms(db):
+    '''Add group permission to aptly db files, which aptly creates without
+       group permission no matter the umask.'''
+    for dirpath, dirs, files in os.walk(db):
+        if we_own(dirpath):
+            os.chmod(dirpath, 0o2775)
+        for f in [os.path.join(dirpath, x) for x in files]:
+            if we_own(f):
+                os.chmod(f, 0o664)
+
 
 class AptlyClient(object):
     def __init__(self, path):
+        self.path = path
+
         cfg = {
             'rootDir': path,
             'keyring': os.path.join(path, 'trustedkeys.gpg'),
@@ -37,6 +55,9 @@ class AptlyClient(object):
         except subprocess.CalledProcessError as e:
             print e.output
             raise
+        finally:
+            db = os.path.join(self.path, 'db')
+            fixup_db_perms(db)
 
     def repo_list(self):
         output = self.call('repo', 'list')
