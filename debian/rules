@@ -5,12 +5,12 @@
 
 override_dh_auto_clean:
 	dh_auto_clean
-	cd ptuxrepo.d && python2.7 setup.py clean -a
+	cd src-ptuxrepo && python2.7 setup.py clean -a
 	cd src && python2.7 setup.py clean -a
 
 override_dh_auto_build:
 	dh_auto_build
-	cd ptuxrepo.d && python2.7 setup.py build --force
+	cd src-ptuxrepo && python2.7 setup.py build --force
 	cd src && python2.7 setup.py build --force
 
 devscripts_bin := debian/devscripts-ptux/usr/bin/
@@ -20,14 +20,15 @@ ptuxrepo_lib := debian/ptuxrepo/usr/lib/ptuxrepo
 
 override_dh_auto_install:
 	dh_auto_install
-	cd ptuxrepo.d && python2.7 setup.py install \
+
+	cd src-ptuxrepo && python2.7 setup.py install \
 		--force \
 		--root=../debian/ptuxrepo \
 		--no-compile \
 		-O0 \
 		--install-layout=deb
 	mkdir -p $(ptuxrepo_lib)
-	cp -a ptuxrepo.d/aptly $(ptuxrepo_lib)
+	cp -a src-ptuxrepo/aptly $(ptuxrepo_lib)
 
 	cd src && python2.7 setup.py install \
 		--force \
@@ -35,6 +36,7 @@ override_dh_auto_install:
 		--no-compile \
 		-O0 \
 		--install-layout=deb
+
 	install -d $(devscripts_bin)
 	find . -maxdepth 1 -type f -name 'ptux*' | xargs install -t $(devscripts_bin)
 	install dh-make-ptux/dh-make-ptux $(devscripts_bin)
