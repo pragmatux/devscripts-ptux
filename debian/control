@@ -2,13 +2,14 @@ Source: devscripts-ptux
 Section: devel
 Priority: extra
 Maintainer: Ryan Kuester <rkuester@insymbols.com>
-Build-Depends: debhelper (>= 9), python, python-setuptools
+Build-Depends: debhelper (>= 9), python, python-setuptools, python-docopt
 Standards-Version: 3.9.3
 X-Python-Version: ${python:Versions}
 
 Package: devscripts-ptux
 Architecture: all
-Depends: dh-make, python-debian, git-buildpackage, ptuxrepo (= ${binary:Version}), ${misc:Depends}
+Depends: dh-make, git-buildpackage, ptuxrepo (= ${binary:Version}),
+         ${python:Depends}, ${misc:Depends}
 Description: Helper scripts for Pragmatux development
  This package contains helper scripts for development in Pragmatux-based
  projects. The scripts are often enhancements to Debian's own
