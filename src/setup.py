@@ -8,6 +8,7 @@ setup(
     author_email='pragmatux-users@lists.pragmatux.org',
     license='GPL',
     py_modules=['ptuxversion'],
+    packages=['ptuxutil'],
     install_requires=['docopt'],
     entry_points={ 'console_scripts': ['ptuxversion=ptuxversion:cli'] }
 )

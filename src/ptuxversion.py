@@ -6,8 +6,8 @@ usage: ptuxversion [<commit-ish>]
 
 import sys
 from docopt import docopt
-import sh
-from sh.contrib import git
+from ptuxutil import sh
+from ptuxutil.sh.contrib import git
 import time
 import string
 

@@ -3,6 +3,7 @@ import tempfile
 import os
 import shutil
 import random
+from ptuxutil import sh
 from sh import git
 import ptuxversion
 
