@@ -29,12 +29,14 @@ ptuxbuild:
     - debian/build/*
     - debian/changelog
 
-py unittest:
+py unittests:
   stage: test
   script:
   - dpkg -i debian/build/ptuxrepo*.deb || true
   - apt-get -yq install -f
-  - cd ptuxrepo.d
+  - cd src
+  - python -m unittest discover
+  - cd ../src-ptuxrepo
   - python -m unittest discover
 
 docker image:
