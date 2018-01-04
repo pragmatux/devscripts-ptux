@@ -1,11 +1,26 @@
 import unittest
 import tempfile
 import os
+import sys
 import shutil
 import random
+from cStringIO import StringIO
+from contextlib import contextmanager
 from ptuxutil import sh
 from sh import git
 import ptuxversion
+
+
+@contextmanager
+def stdout(command, *args, **kwargs):
+    save = sys.stdout
+    sys.stdout = StringIO()
+    try:
+        command(*args, **kwargs)
+        sys.stdout.seek(0)
+        yield sys.stdout.read()
+    finally:
+        sys.stdout = save
 
 
 class Base(unittest.TestCase):
@@ -125,6 +140,19 @@ class LocalRepo(Base):
         version = ptuxversion.describe()
         expect = '{}\+T[0-9]+~g{}'.format(tagname, self.commits[-1])
         self.assertRegexpMatches(version, expect)
+
+    def testCliNoArg(self):
+        'The console_script entry_point can be called with no arguments'
+        with stdout(ptuxversion.cli, []) as out:
+            expect = '{}~g{}'.format(len(self.commits), self.commits[-1])
+            self.assertEquals(out.strip(), expect)
+
+    def testCliWithArg(self):
+        'The console_script entry_point can be called with an argument'
+        with stdout(ptuxversion.cli, 'master') as out:
+            expect = '{}~g{}'.format(len(self.commits), self.commits[-1])
+            self.assertEquals(out.strip(), expect)
+
 
 
 class WithRemote(Base):
