@@ -110,11 +110,11 @@ def describe(commit='HEAD'):
     return '{}{}~g{}{}'.format(d, t, r, y)
 
 
-def cli(argv):
+def cli(argv=sys.argv[1:]):
     args = docopt(__doc__, argv=argv)
     commit = args['<commit-ish>'] or 'HEAD'
     print describe(commit)
 
 
 if __name__ == "__main__":
-    cli(sys.argv[1:])
+    cli()
