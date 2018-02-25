@@ -14,7 +14,7 @@ override_dh_auto_build:
 	cd src && python2.7 setup.py build --force
 
 devscripts_bin := debian/devscripts-ptux/usr/bin/
-devscripts_share := debian/devscripts-ptux/usr/share/devscripts-dev
+devscripts_share := debian/devscripts-ptux/usr/share/devscripts-ptux
 templates := dh-make-ptux/templates-native-gpl3
 ptuxrepo_lib := debian/ptuxrepo/usr/lib/ptuxrepo
 
