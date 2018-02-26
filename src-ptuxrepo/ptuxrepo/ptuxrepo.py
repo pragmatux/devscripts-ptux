@@ -185,7 +185,8 @@ def find_changes(srcdir=None):
     path = os.path.join(srcdir, 'debian/changelog')
     with file(path) as f:
         changelog = debian.changelog.Changelog(f)
-    basename = '%s_%s_amd64.changes' % (changelog.package, changelog.version)
+    arch = subprocess.check_output(['dpkg-architecture', '-qDEB_HOST_ARCH']).strip()
+    basename = '%s_%s_%s.changes' % (changelog.package, changelog.version, arch)
     return find_buildfile(basename, srcdir)
 
 
