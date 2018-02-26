@@ -3,6 +3,7 @@
 import sys
 import os.path
 import re
+import subprocess
 from debian.changelog import Changelog
 from debian.deb822 import Changes
 
@@ -24,7 +25,8 @@ def search(name):
 def changes_path():
 	c = Changelog(file('debian/changelog'), max_blocks=1)
 	version = re.sub(r'[0-9]+:', r'', str(c.version)) # strip epoch
-	name = '%s_%s_amd64.changes' % (c.package, version)
+	arch = subprocess.check_output(['dpkg-architecture', '-qDEB_HOST_ARCH']).strip()
+	name = '%s_%s_%s.changes' % (c.package, version, arch)
 	return search(name)
 
 
