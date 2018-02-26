@@ -29,8 +29,8 @@ main ()
 
 	output="debian/build"
 	echo "ptuxbuild: moving generated files to $output"
-	mkdir -p debian/build
-	ptuxfind build | xargs -I% mv % debian/build
+	mkdir -p $output
+	ptuxfind build | xargs -I% mv % $output
 }
 
 if [ "$PTUXBUILD_DOCKER_IMAGE" ]; then
