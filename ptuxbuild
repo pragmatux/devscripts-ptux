@@ -21,8 +21,33 @@ run_in_container ()
 		"$@"
 }
 
+set_env ()
+{
+	# If -a<arch> is in $@, set environment using dpkg-architecture so
+	# all tools see the architecture target.
+	while [ "$#" -gt 0 ]; do
+	case "$1,$2" in
+		-a?*,*) # traditional -a<arch> format
+			arch="${1#-a}"
+			eval "$(dpkg-architecture -s -a$arch)"
+			return
+			;;
+		-a,?*) # non-traditional -a <arch> format
+			arch="$2"
+			eval "$(dpkg-architecture -s -a$arch)"
+			return
+			;;
+		*)
+			shift 1
+			;;
+	esac
+	done
+}
+
 main ()
 {
+	set_env "$@"
+
 	dh_clean
 	ptuxchange
 	git-buildpackage -us -uc --git-ignore-branch "$@"
