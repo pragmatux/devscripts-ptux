@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-usage: ptuxversion [<commit-ish>]
+usage: ptuxversion [options] [<commit-ish>]
+
+options:
+  --check-development   return 0 if not released, otherwise 1
 """
 
 
@@ -85,7 +88,7 @@ def _is_valid(commit):
     return True
 
 
-def describe(commit='HEAD'):
+def _nearest_published(commit):
     if _is_valid('origin/master'):
         base = git('merge-base', commit, 'origin/master').strip()
     elif _is_valid('master'):
@@ -93,18 +96,27 @@ def describe(commit='HEAD'):
     else:
         base = None
 
-    nearest_published = _nearest_tag(commit, base) or base
+    return _nearest_tag(commit, base) or base
 
+
+def is_development(commit):
+    return (_are_synonomous(commit, 'HEAD') and _is_dirty()) \
+           or not _is_contained(commit, _nearest_published(commit))
+
+
+def describe(commit='HEAD'):
     y = ''
     if _are_synonomous(commit, 'HEAD') and _is_dirty():
         y = '~dirty'
 
+    n = _nearest_published(commit)
+
     t = ''
-    if y or not _is_contained(commit, nearest_published):
+    if y or not _is_contained(commit, n):
         sec_since_epoch = int(time.time())
         t = '+T{}'.format(sec_since_epoch)
 
-    d = tag_plus_distance(nearest_published) if nearest_published else '0'
+    d = tag_plus_distance(n) if n else '0'
     r = git('rev-parse', '--short', commit).strip()
 
     return '{}{}~g{}{}'.format(d, t, r, y)
@@ -113,7 +125,14 @@ def describe(commit='HEAD'):
 def cli(argv=sys.argv[1:]):
     args = docopt(__doc__, argv=argv)
     commit = args['<commit-ish>'] or 'HEAD'
-    print describe(commit)
+
+    if args['--check-development']:
+        if is_development(commit):
+            sys.exit(0)
+        else:
+            sys.exit(1)
+    else:
+        print describe(commit)
 
 
 if __name__ == "__main__":
