@@ -15,14 +15,23 @@ default repository is taken first from the environment variable PTUXREPO_REPO,
 and secondly from the configuration key {"default": {"repo"}} (see ptuxrepo
 config --help). The repository is either a path in the local filesytem, a
 remote repository specification, or a name referring to a repository specified
-in the configuration key {"repositories"}. Remote repositories are accessed via
-the ssh protocol, and specified in the ssh URI syntax used by git-fetch(1):
+in the configuration key
 
-    <repository> := ssh://[user@]host.tld[:port]/path/to/repo
+    {"repositories": {<name>: {"url": <repository> [, "dist": <dist>]}
 
-or git's scp-like syntax:
+e.g.:
+    repositories:
+        production:
+            url: ssh://packages.foo.com/ptuxrepo/project
+            dist: wheezy
+        testing:
+            url: ssh://dev.foo.com/ptuxrepo/project
+            dist: wheezy
 
-    <repository> := [user@]host.tld:path/to/repo
+Remote repositories are accessed via the ssh protocol, and specified in the
+ssh URL syntax used by git-fetch(1):
+
+    <url> := ssh://[user@]host.tld[:port]/path/to/repo
 
 The default distribution of the repository is used unless an alternative is
 specified with the option -d. It is an error if the distribution does not
@@ -35,8 +44,8 @@ import docopt, sys, os, tempfile, re, subprocess, signal, ptuxrepo, config
 
 
 class Remote:
-    def __init__(self, uri):
-        m = re.match(r'ssh://(?P<auth>[^:/]+):?(?P<port>[0-9]*)(?P<path>/.*)', uri)
+    def __init__(self, url):
+        m = re.match(r'ssh://(?P<auth>[^:/]+):?(?P<port>[0-9]*)(?P<path>/.*)', url)
         if m:
             self.authority = m.group('auth')
             self.path = m.group('path')
@@ -49,15 +58,17 @@ class Remote:
             raise ValueError('not a valid remote URI')
 
 
-def parse_remote(uri):
+def parse_remote(url):
     try:
-        return Remote(uri)
+        return Remote(url)
     except ValueError:
         return None
 
 
 def main(argv):
     args = docopt.docopt(__doc__, argv=argv)
+
+    dist = args['--dist']
 
     repo = args['<repository>']
     if repo is None:
@@ -73,10 +84,12 @@ def main(argv):
             path = repo
         else:
             c = config.get(('repositories', repo))
-            if c:
-                remote = parse_remote(c)
+            if c['url']:
+                remote = parse_remote(c['url'])
                 if remote is None:
-                    path = c
+                    path = c['url']
+                if not dist and 'dist' in c:
+                    dist = c['dist']
             else:
                 raise RuntimeError('repository {} not found'.format(repo))
 
@@ -96,9 +109,9 @@ def main(argv):
         if args['--dist-force']:
             do_local(path, ingestables, dist=args['--dist-force'], create_dist=True)
         else:
-            do_local(path, ingestables, dist=args['--dist'])
+            do_local(path, ingestables, dist=dist)
     else:
-        do_remote(remote.authority, remote.port, remote.path, ingestables, args['--dist'], args['--dist-force'])
+        do_remote(remote.authority, remote.port, remote.path, ingestables, dist, args['--dist-force'])
 
 
 def do_local(path, ingestables, dist=None, create_dist=False):
