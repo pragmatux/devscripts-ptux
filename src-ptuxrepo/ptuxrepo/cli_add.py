@@ -1,8 +1,8 @@
 '''usage: ptuxrepo add [options] [<repository> [<ingestables>...]]
 
 options:
-    --dist <dist>        use <dist> instead of the default distribution
-    --dist-force <dist>  force creation of <dist> if it does not exist
+    --dist <dist>, -d <dist>  use <dist> instead of the default distribution
+    --dist-force <dist>       force creation of <dist> if it does not exist
 
 Add package(s) to a package repository. With no arguments, add the package(s)
 specified in the current .changes file to the default repository. The current
@@ -35,8 +35,8 @@ ssh URL syntax used by git-fetch(1):
 
 The default distribution of the repository is used unless an alternative is
 specified with the option -d. It is an error if the distribution does not
-exist, unless the option -f is given, in which case the distribution is
-created.
+exist, unless the option --dist-force is given, in which case the distribution
+is created.
 '''
 
 

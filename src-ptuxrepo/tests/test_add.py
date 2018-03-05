@@ -44,6 +44,26 @@ class Add(fixture.InEmptyRepo):
         fixture.cli('add', '--dist-force', dist, '.', self.dp1.changes)
         self.assert_has_binary(self.dp1, dist=dist)
 
+    def test_dist_option(self):
+        'add --dist DIST uses given distribution'
+
+        dist = 'testing'
+        fixture.cli('add', '--dist-force', dist, '.', self.dp1.changes)
+        self.assert_has_binary(self.dp1, dist=dist)
+
+        fixture.cli('add', '--dist', dist, '.', self.dp2.changes)
+        self.assert_has_binary(self.dp2, dist=dist)
+
+    def test_d_option(self):
+        'add -d DIST uses given distribution'
+
+        dist = 'testing'
+        fixture.cli('add', '--dist-force', dist, '.', self.dp1.changes)
+        self.assert_has_binary(self.dp1, dist=dist)
+
+        fixture.cli('add', '-d', dist, '.', self.dp2.changes)
+        self.assert_has_binary(self.dp2, dist=dist)
+
     def test_reponame(self):
         'repo comes from config if not absolute'
 
