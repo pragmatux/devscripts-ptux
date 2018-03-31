@@ -35,6 +35,10 @@ version () {
 }
 
 create_placeholder () {
+	if [ -d .git ]; then
+		git update-index --no-assume-unchanged debian/changelog
+	fi
+
 	cat >debian/changelog <<- END
 		$(get_package_name) (0) UNRELEASED; urgency=low
 
