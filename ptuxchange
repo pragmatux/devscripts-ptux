@@ -51,7 +51,8 @@ create_placeholder () {
 }
 
 release_changelog () {
-	if [ -d .git ]; then
+    if [ -d .git ] || git rev-parse --git-dir > /dev/null
+	then
 		git update-index --assume-unchanged debian/changelog
 	fi
 
